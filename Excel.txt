@@ -1,0 +1,85 @@
+var sheetName = 'Sheet1' 
+var scriptProp = PropertiesService.getScriptProperties()
+
+function intialSetup () {  
+var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet()  
+scriptProp.setProperty('key', activeSpreadsheet.getId())
+}
+
+function doPost (e) {  
+var lock = LockService.getScriptLock()  
+lock.tryLock(10000)  
+
+try {    
+var doc = SpreadsheetApp.openById(scriptProp.getProperty('key'))    
+var sheet = doc.getSheetByName(sheetName)    
+var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
+var nextRow = sheet.getLastRow() + 1     
+var newRow = headers.map(function(header) {      
+return header === 'timestamp' ? new Date() : e.parameter[header]    
+})    
+
+sheet.getRange(nextRow, 1, 1, newRow.length).setValues([newRow])    
+var emailsheet = doc.getSheetByName("Sheet2")
+
+
+var lrow = sheet.getLastRow();   // User which last filled the form
+ 
+var name = sheet.getRange(lrow, 2).getValue();     // Get name value. Row - Last Row, Column - 2
+ // var email = sheet.getRange(lrow, 3).getValue();    // Get email value. Row - Last Row, Column - 3
+  //var Bank = sheet.getRange(lrow, 8).getValue();   // Get gender value. Row - Last Row, Column - 4
+  //  var Branch = sheet.getRange(lrow, 9).getValue();   // Get gender value. Row - Last Row, Column - 4
+ //var account_name = sheet.getRange(lrow, 5).getValue();
+  //var account_number = sheet.getRange(lrow, 6).getValue();   // Get gender value. Row - Last Row, Column - 4
+ // var IFSC = sheet.getRange(lrow, 7).getValue();   // Get gender value. Row - Last Row, Column - 4
+//  var Q4 = sheet.getRange(lrow, 9).getValue();   // Get gender value. Row - Last Row, Column - 4
+//  var Q5 = sheet.getRange(lrow, 10).getValue();   // Get gender value. Row - Last Row, Column - 4
+//  var Q6 = sheet.getRange(lrow, 11).getValue();   // Get gender value. Row - Last Row, Column - 4
+//  var Q7 = sheet.getRange(lrow, 12).getValue();   // Get gender value. Row - Last Row, Column - 4
+ // var Total =  Bank + " & " + Branch  
+   
+  var total_str = "";
+ 
+  for(var i=6;i<=12;i++){
+    var cell_string = sheet.getRange(lrow, i).getValue();
+    if(cell_string.length > 0){
+      var concat_string = i != 12 ? cell_string + "\n" : cell_string;
+      total_str = total_str + concat_string;
+    }
+  }
+ 
+  console.log("Total " + total_str);
+  Logger.log("Total " + total_str);
+ 
+  //var subject = "KCT OSA - Bank Details Acknowledgement";
+ 
+  //var body = emailsheet.getRange(1, 1).getValue();   // Get Email Content
+  //body = body.replace("{firstName }",name);   // Replace variable 'name' with user's name
+  //  body = body.replace("{Total}",Total);
+  //body = body.replace("{Account_Holder_Name}",account_name);
+  //body = body.replace("{account_number}",account_number);
+  //body = body.replace("{IFSC}",IFSC);
+  //console.log("Emailing to " + email);
+  //Logger.log("Emailing to " + email);
+  //MailApp.sendEmail(email, subject, body);    // Send email to email entered by the user
+  //console.log("Mail Sent");
+//Logger.log("Mail Sent");
+
+
+
+return ContentService       
+.createTextOutput(JSON.stringify({ 'result': 'success', 'row': nextRow }))
+.setMimeType(ContentService.MimeType.JSON)  
+}  
+
+catch (e) {    
+return ContentService       
+
+.createTextOutput(JSON.stringify({ 'result': 'error', 'error': e }))
+.setMimeType(ContentService.MimeType.JSON)  
+}  
+
+finally {    
+lock.releaseLock()  
+}
+}
